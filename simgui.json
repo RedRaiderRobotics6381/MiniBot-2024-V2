@@ -33,5 +33,15 @@
         }
       }
     }
+  },
+  "NetworkTables": {
+    "retained": {
+      "SmartDashboard": {
+        "Auto Chooser": {
+          "open": true
+        },
+        "open": true
+      }
+    }
   }
 }

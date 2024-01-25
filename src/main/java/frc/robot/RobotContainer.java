@@ -24,6 +24,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Vision.LLDriveToAprilTagPosCmd;
 import frc.robot.commands.Vision.LLDriveToObjectCmd;
 import frc.robot.commands.swervedrive.auto.AutoBalanceCommand;
+import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteFieldDriveAng;
 //import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.Secondary.ArmIntakeSubsystem;
@@ -77,17 +78,14 @@ public class RobotContainer
     
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
-    // AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
-    //                                                                () -> MathUtil.applyDeadband(driverXbox.getLeftY(),
-    //                                                                                             OperatorConstants.LEFT_Y_DEADBAND),
-    //                                                                () -> MathUtil.applyDeadband(driverXbox.getLeftX(),
-    //                                                                                             OperatorConstants.LEFT_X_DEADBAND),
-    //                                                                () -> MathUtil.applyDeadband(driverXbox.getRightX(),
-    //                                                                                             OperatorConstants.RIGHT_X_DEADBAND),
-    //                                                                driverXbox::getYButtonPressed,
-    //                                                                driverXbox::getAButtonPressed,
-    //                                                                driverXbox::getXButtonPressed,
-    //                                                                driverXbox::getBButtonPressed);
+    AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
+                                                                   () -> MathUtil.applyDeadband(-driverXbox.getLeftY(),
+                                                                                                OperatorConstants.LEFT_Y_DEADBAND),
+                                                                   () -> MathUtil.applyDeadband(-driverXbox.getLeftX(),
+                                                                                                OperatorConstants.LEFT_X_DEADBAND),
+                                                                   () -> MathUtil.applyDeadband(driverXbox.getRightX(),
+                                                                                                OperatorConstants.RIGHT_X_DEADBAND),
+                                                                   driverXbox.getPOV());
 
     // // Applies deadbands and inverts controls because joysticks
     // // are back-right positive while robot
@@ -106,9 +104,9 @@ public class RobotContainer
     // left stick controls translation
     // right stick controls the angular velocity of the robot
     Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-        () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> MathUtil.applyDeadband(driverXbox.getRawAxis(4), OperatorConstants.RIGHT_X_DEADBAND));
+        () -> MathUtil.applyDeadband(-driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+        () -> MathUtil.applyDeadband(-driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+        () -> MathUtil.applyDeadband(-driverXbox.getRawAxis(4), OperatorConstants.RIGHT_X_DEADBAND));
 
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
         () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
@@ -126,7 +124,9 @@ public class RobotContainer
 
 
     drivebase.setDefaultCommand(
-        !RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedDirectAngleSim);
+        //!RobotBase.isSimulation() ? driveFieldOrientedAnglularVelocity : driveFieldOrientedDirectAngleSim);
+        !RobotBase.isSimulation() ? closedAbsoluteDriveAdv : closedAbsoluteDriveAdv);
+        //!RobotBase.isSimulation() ? closedFieldAbsoluteDriveAng : closedFieldAbsoluteDriveAng);
   }
 
   /**
@@ -162,7 +162,7 @@ public class RobotContainer
 
     new JoystickButton(engineerXbox, 1).onTrue(armRotateSubsystem.rotatePosCommand(ArmConstants.posDrive)); // 180 is vertical 
     new JoystickButton(engineerXbox, 4).onTrue(armRotateSubsystem.rotatePosCommand(ArmConstants.posIntake)); //90 is horizontal 
-
+    
     //new JoystickButton(engineerXbox,3 ).whileTrue(new ArmIntakeInCmd(armIntakeSubsystem));
     new JoystickButton(engineerXbox,3 ).whileTrue(armIntakeSubsystem.ArmIntakeCmd(ArmConstants.intakeSpeedIn));
     new JoystickButton(engineerXbox, 3).onFalse(armIntakeSubsystem.ArmIntakeCmd(ArmConstants.intakeSpeedHold));

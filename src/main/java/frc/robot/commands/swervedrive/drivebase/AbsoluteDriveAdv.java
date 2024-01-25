@@ -26,9 +26,12 @@ public class AbsoluteDriveAdv extends Command
   private final SwerveSubsystem swerve;
   private final DoubleSupplier  vX, vY;
   private final DoubleSupplier  headingAdjust;
-  private final BooleanSupplier lookAway, lookTowards, lookLeft, lookRight;
+  //private final BooleanSupplier lookAway, lookTowards, lookLeft, lookRight;
+  private final int             povHeading;
   private       boolean         resetHeading = false;
+  private       boolean         manualRotation = false;
 
+  
   /**
    * Used to drive a swerve robot in full field-centric mode.  vX and vY supply translation inputs, where x is
    * torwards/away from alliance wall and y is left/right. Heading Adjust changes the current heading after being
@@ -49,19 +52,13 @@ public class AbsoluteDriveAdv extends Command
    * @param lookLeft      Face the robot left
    * @param lookRight     Face the robot right
    */
-  public AbsoluteDriveAdv(SwerveSubsystem swerve, DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier headingAdjust,
-                          BooleanSupplier lookAway, BooleanSupplier lookTowards, BooleanSupplier lookLeft,
-                          BooleanSupplier lookRight)
+  public AbsoluteDriveAdv(SwerveSubsystem swerve, DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier headingAdjust, int povHeading)
   {
     this.swerve = swerve;
     this.vX = vX;
     this.vY = vY;
     this.headingAdjust = headingAdjust;
-    this.lookAway = lookAway;
-    this.lookTowards = lookTowards;
-    this.lookLeft = lookLeft;
-    this.lookRight = lookRight;
-
+    this.povHeading = povHeading;
     addRequirements(swerve);
   }
 
@@ -77,33 +74,39 @@ public class AbsoluteDriveAdv extends Command
   {
     double headingX = 0;
     double headingY = 0;
+    //System.err.println("POV: " + povHeading);
+    
+    if (povHeading >= 0) {
+      headingX = Math.sin(povHeading);
+      headingY = Math.cos(povHeading);
+    }
 
     // These are written to allow combinations for 45 angles
     // Face Away from Drivers
-    if (lookAway.getAsBoolean())
-    {
-      headingY = -1;
-    }
-    // Face Right
-    if (lookRight.getAsBoolean())
-    {
-      headingX = 1;
-    }
-    // Face Left
-    if (lookLeft.getAsBoolean())
-    {
-      headingX = -1;
-    }
-    // Face Towards the Drivers
-    if (lookTowards.getAsBoolean())
-    {
-      headingY = 1;
-    }
+    // if (lookAway.getAsBoolean())
+    // {
+    //   headingY = 1;
+    // }
+    // // Face Right
+    // if (lookRight.getAsBoolean())
+    // {
+    //   headingX = -1;
+    // }
+    // // Face Left
+    // if (lookLeft.getAsBoolean())
+    // {
+    //   headingX = 1;
+    // }
+    // // Face Towards the Drivers
+    // if (lookTowards.getAsBoolean())
+    // {
+    //   headingY = -1;
+    // }
 
     // Prevent Movement After Auto
     if (resetHeading)
     {
-      if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) > 0)
+      if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) == 0)
       {
         // Get the curret Heading
         Rotation2d currentHeading = swerve.getHeading();
@@ -129,12 +132,20 @@ public class AbsoluteDriveAdv extends Command
     // Make the robot move
     if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) > 0)
     {
+
       resetHeading = true;
-      swerve.drive(translation, (Constants.OperatorConstants.TURN_CONSTANT * -headingAdjust.getAsDouble()), true);
-    } else
+      //manualRotation = true;
+      swerve.drive(translation, (Constants.OperatorConstants.TURN_CONSTANT * -headingAdjust.getAsDouble()), true); 
+      } else
     {
+      //manualRotation = false;
       swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
     }
+    // if (manualRotation == true && headingAdjust.getAsDouble() == 0) {
+    //     // Get the curret Heading
+    //     manualRotation = false;
+    //     resetHeading = true;
+    //   }
   }
 
   // Called once the command ends or is interrupted.
